@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Von Simon | Feminist Poetry</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,900;1,400;1,900&display=swap" rel="stylesheet">
+
+    <style>
+        /* Global Styles */
+        :root {
+            --bg-color: #faf9f7;
+            --text-color: #2c2c2c;
+            --accent-red: #8b0000;
+        }
+
+        body {
+            font-family: 'Playfair Display', serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.8;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* Header */
+        header {
+            text-align: center;
+            padding: 4rem 2rem 2rem;
+            border-bottom: 2px solid var(--accent-red);
+            background-color: #fff;
+        }
+
+        .site-title {
+            font-size: 3.5rem;
+            font-weight: 900;
+            margin: 0;
+            color: var(--accent-red);
+            letter-spacing: 1px;
+        }
+
+        .site-subtitle {
+            font-size: 1.2rem;
+            font-style: italic;
+            color: #666;
+            margin-top: 0.5rem;
+        }
+
+        /* Two-Column Layout */
+        .layout-wrapper {
+            display: flex;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+            gap: 3rem;
+        }
+
+        /* Sidebar */
+        aside.sidebar {
+            flex: 1;
+            min-width: 250px;
+            border-right: 1px solid rgba(139, 0, 0, 0.2);
+            padding-right: 2rem;
+        }
+
+        .sidebar h3 {
+            font-weight: 900;
+            color: var(--accent-red);
+            font-size: 1.5rem;
+            border-bottom: 1px solid #ccc;
+            padding-bottom: 0.5rem;
+        }
+
+        .controls {
+            margin-bottom: 2rem;
+        }
+
+        select {
+            width: 100%;
+            padding: 0.5rem;
+            font-family: 'Playfair Display', serif;
+            border: 1px solid #ccc;
+            background-color: #fff;
+            color: var(--text-color);
+            font-size: 1rem;
+            cursor: pointer;
+        }
+
+        .poem-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .poem-list li {
+            margin-bottom: 1rem;
+            order: 0; /* Used for JS sorting */
+        }
+
+        .poem-list a {
+            text-decoration: none;
+            color: var(--text-color);
+            font-size: 1.1rem;
+            transition: color 0.3s ease;
+        }
+
+        .poem-list a:hover {
+            color: var(--accent-red);
+            font-style: italic;
+        }
+
+        /* Main Content */
+        main.content {
+            flex: 3;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .poem-card {
+            margin-bottom: 3rem;
+            padding: 2rem;
+            background-color: #fff;
+            border-left: 4px solid var(--accent-red);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.03);
+            transition: transform 0.2s ease;
+            order: 0; /* Used for JS sorting */
+        }
+
+        .poem-card:hover {
+            transform: translateX(5px);
+        }
+
+        .poem-card a {
+            text-decoration: none;
+            color: inherit;
+            display: block;
+        }
+
+        .poem-title {
+            font-size: 2.5rem;
+            font-weight: 900;
+            color: var(--accent-red);
+            margin: 0 0 0.2rem 0;
+        }
+
+        /* NEW: Meta tags for Author and Year */
+        .poem-meta {
+            font-size: 1rem;
+            color: #777;
+            font-style: italic;
+            margin: 0 0 1rem 0;
+        }
+
+        .poem-excerpt {
+            font-size: 1.2rem;
+            color: #555;
+            white-space: pre-wrap;
+            margin-top: 1rem;
+        }
+
+        .read-more {
+            display: inline-block;
+            margin-top: 1.5rem;
+            color: var(--accent-red);
+            font-weight: 900;
+            text-transform: uppercase;
+            font-size: 0.9rem;
+            letter-spacing: 1px;
+        }
+
+        /* Responsive */
+        @media (max-width: 800px) {
+            .layout-wrapper {
+                flex-direction: column;
+            }
+            aside.sidebar {
+                border-right: none;
+                border-bottom: 1px solid rgba(139, 0, 0, 0.2);
+                padding-right: 0;
+                padding-bottom: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1 class="site-title"><i>Von Simon</i></h1>
+        <p class="site-subtitle">The Acclaimed Feminist Poet</p>
+    </header>
+
+    <div class="layout-wrapper">
+        <aside class="sidebar">
+            <h3>All Works</h3>
+            
+            <div class="controls">
+                <label for="sort-poems" style="font-size: 0.9rem; color: #666; display: block; margin-bottom: 0.5rem;">Sort by:</label>
+                <select id="sort-poems" onchange="sortPoems()">
+                    <option value="recent">Recently Added</option>
+                    <option value="oldest">Oldest First</option>
+                    <option value="a-z">Alphabetical (A-Z)</option>
+                </select>
+            </div>
+
+            <ul class="poem-list" id="sidebar-list">
+
+                <li data-title="SFL" data-added="2"><a href="#" onclick="showPoem('poem-1'); return false;">Symphony for Laura</a></li>
+                <li data-title="ETHEREAL DISEASE" data-added="1"><a href="#" onclick="showPoem('poem-2'); return false;">Ethereal Disease</a></li>
+           
+            </ul>
+        </aside>
+
+        <main class="content">
+            
+            <div id="home-feed">
+                
+                
+
+                <article class="poem-card" data-title="SFL" data-added="1">
+                    <a href="#" onclick="showPoem('poem-1'); return false;">
+                        <h2 class="poem-title">Symphony for Laura</h2>
+                        <p class="poem-meta">By Von Simon | 2021</p>
+                        <p class="poem-excerpt">There’s a pandemic in my pants
+Every time you enter a room...</p>
+                        <span class="read-more">Read Full Poem &rarr;</span>
+                    </a>
+                </article>
+
+                <article class="poem-card" data-title="ETHEREAL DISEASE" data-added="2">
+                    <a href="#" onclick="showPoem('poem-2'); return false;">
+                        <h2 class="poem-title">Ethereal Disease</h2>
+                        <p class="poem-meta">By Von Simon | 2022</p>
+                        <p class="poem-excerpt">Lou remind me of this girl I dated in high school
+A small girl...</p>
+                        <span class="read-more">Read Full Poem &rarr;</span>
+                    </a>
+                </article>
+
+
+
+            </div>
+
+            <div id="poem-1" class="poem-detail" style="display: none;">
+                <a href="#" onclick="showHome(); return false;" style="color: var(--accent-red); text-decoration: none; font-weight: bold; display: inline-block; margin-bottom: 2rem;">&larr; Back to all works</a>
+                
+
+
+
+                <h2 class="poem-title" style="font-size: 3rem;">Symphony for Laura</h2>
+                <p class="poem-meta" style="font-size: 1.2rem;">By Von Simon | 2021</p>
+                
+                <div class="poem-excerpt" style="font-size: 1.4rem; line-height: 2;">There’s a pandemic in my pants
+Every time you enter a room
+Every time you scratch your elbow
+And laugh
+
+There’s a pandemic in my pants
+When you tuck your hair behind your ear
+And your smell invades the room
+And you ask “Have you been writing lately?”
+
+There’s a pandemic in my pants
+When I feel you coming near
+My body hairs stand erect
+Waiting for their commander
+
+I wish you could feel my emulsion
+I wish you could feel my compulsion
+As I watch you take a sip from a colorful straw
+You’ve always liked soda</div>
+
+                <div style="margin-top: 4rem; padding-top: 2rem; border-top: 1px solid #ccc;">
+                    <h3>Reader Comments</h3>
+                    <p style="color: #666; font-style: italic;">[Comment plugin code will go here]</p>
+                </div>
+            </div>
+
+
+
+
+            <div id="poem-2" class="poem-detail" style="display: none;">
+                <a href="#" onclick="showHome(); return false;" style="color: var(--accent-red); text-decoration: none; font-weight: bold; display: inline-block; margin-bottom: 2rem;">&larr; Back to all works</a>
+                
+                <h2 class="poem-title" style="font-size: 3rem;">Ethereal Disease</h2>
+                <p class="poem-meta" style="font-size: 1.2rem;">By Von Simon | 2022</p>
+                
+                <div class="poem-excerpt" style="font-size: 1.4rem; line-height: 2;">You remind me of this girl I dated in high school
+A small girl
+With brown hair
+And an infectious laugh
+
+I wanted to go swimming in her Petrie dish
+And catch her ethereal disease
+You remind me of this girl I dated in college 
+A pure girl
+Clean Breath
+Milky arms swaying on our smoldering walks to the 7-11
+
+I gave her my heart 
+My mind
+My body
+I gave her my ethereal disease</div>
+
+                <div style="margin-top: 4rem; padding-top: 2rem; border-top: 1px solid #ccc;">
+                    <h3>Reader Comments</h3>
+                    <p style="color: #666; font-style: italic;">[Comment plugin code will go here]</p>
+                </div>
+            </div>
+
+
+
+
+            
+        </main>
+    </div>
+
+    <script>
+        // 1. Function to switch between main feed and full poems
+        function showPoem(poemId) {
+            document.getElementById('home-feed').style.display = 'none';
+            let poems = document.querySelectorAll('.poem-detail');
+            poems.forEach(p => p.style.display = 'none');
+            document.getElementById(poemId).style.display = 'block';
+            window.scrollTo(0, 0);
+        }
+
+        function showHome() {
+            let poems = document.querySelectorAll('.poem-detail');
+            poems.forEach(p => p.style.display = 'none');
+            document.getElementById('home-feed').style.display = 'block';
+            window.scrollTo(0, 0);
+        }
+
+        // 2. NEW: Function to sort the poems
+        function sortPoems() {
+            const sortMethod = document.getElementById('sort-poems').value;
+            
+            // Get arrays of our cards and list items
+            const feedContainer = document.getElementById('home-feed');
+            const listContainer = document.getElementById('sidebar-list');
+            const cards = Array.from(feedContainer.querySelectorAll('.poem-card'));
+            const listItems = Array.from(listContainer.querySelectorAll('li'));
+
+            // Sorting logic
+            const sorter = (a, b) => {
+                if (sortMethod === 'recent') {
+                    // Highest 'data-added' number goes first
+                    return b.dataset.added - a.dataset.added; 
+                } else if (sortMethod === 'oldest') {
+                    // Lowest 'data-added' number goes first
+                    return a.dataset.added - b.dataset.added;
+                } else if (sortMethod === 'a-z') {
+                    // Alphabetical by 'data-title'
+                    return a.dataset.title.localeCompare(b.dataset.title);
+                }
+            };
+
+            // Apply the sort
+            cards.sort(sorter);
+            listItems.sort(sorter);
+
+            // Re-attach them to the page in the new order
+            cards.forEach(card => feedContainer.appendChild(card));
+            listItems.forEach(item => listContainer.appendChild(item));
+        }
+    </script>
+
+</body>
+</html>
