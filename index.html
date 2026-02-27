@@ -99,7 +99,7 @@
 
         .poem-list li {
             margin-bottom: 1rem;
-            order: 0; /* Used for JS sorting */
+            order: 0; 
         }
 
         .poem-list a {
@@ -128,7 +128,7 @@
             border-left: 4px solid var(--accent-red);
             box-shadow: 0 2px 10px rgba(0,0,0,0.03);
             transition: transform 0.2s ease;
-            order: 0; /* Used for JS sorting */
+            order: 0; 
         }
 
         .poem-card:hover {
@@ -148,7 +148,6 @@
             margin: 0 0 0.2rem 0;
         }
 
-        /* NEW: Meta tags for Author and Year */
         .poem-meta {
             font-size: 1rem;
             color: #777;
@@ -173,7 +172,6 @@
             letter-spacing: 1px;
         }
 
-        /* Responsive */
         @media (max-width: 800px) {
             .layout-wrapper {
                 flex-direction: column;
@@ -207,54 +205,49 @@
                 </select>
             </div>
 
-            <ul class="poem-list" id="sidebar-list">
-
-                <li data-title="SFL" data-added="2"><a href="#" onclick="showPoem('poem-1'); return false;">Symphony for Laura</a></li>
-                <li data-title="ETHEREAL DISEASE" data-added="1"><a href="#" onclick="showPoem('poem-2'); return false;">Ethereal Disease</a></li>
-           
-            </ul>
+            <ul class="poem-list" id="sidebar-list"></ul>
         </aside>
 
         <main class="content">
-            
-            <div id="home-feed">
-                
-                
+            <div id="home-feed"></div>
 
-                <article class="poem-card" data-title="SFL" data-added="1">
-                    <a href="#" onclick="showPoem('poem-1'); return false;">
-                        <h2 class="poem-title">Symphony for Laura</h2>
-                        <p class="poem-meta">By Von Simon | 2021</p>
-                        <p class="poem-excerpt">There’s a pandemic in my pants
-Every time you enter a room...</p>
-                        <span class="read-more">Read Full Poem &rarr;</span>
-                    </a>
-                </article>
+            <div id="full-poems-container"></div>
+        </main>
+    </div>
 
-                <article class="poem-card" data-title="ETHEREAL DISEASE" data-added="2">
-                    <a href="#" onclick="showPoem('poem-2'); return false;">
-                        <h2 class="poem-title">Ethereal Disease</h2>
-                        <p class="poem-meta">By Von Simon | 2022</p>
-                        <p class="poem-excerpt">Lou remind me of this girl I dated in high school
-A small girl...</p>
-                        <span class="read-more">Read Full Poem &rarr;</span>
-                    </a>
-                </article>
+    <script>
+        /* =======================================================
+           PASTE YOUR POEMS HERE!
+           Follow the format below. Enclose the poem text in backticks (`).
+           The newest poems should go at the TOP of the list.
+           ======================================================= */
+        const poemDatabase = [
+            {
+                title: "Ethereal Disease",
+                year: "2022",
+                author: "Von Simon",
+                text: `You remind me of this girl I dated in high school
+A small girl
+With brown hair
+And an infectious laugh
 
+I wanted to go swimming in her Petrie dish
+And catch her ethereal disease
+You remind me of this girl I dated in college 
+A pure girl
+Clean Breath
+Milky arms swaying on our smoldering walks to the 7-11
 
-
-            </div>
-
-            <div id="poem-1" class="poem-detail" style="display: none;">
-                <a href="#" onclick="showHome(); return false;" style="color: var(--accent-red); text-decoration: none; font-weight: bold; display: inline-block; margin-bottom: 2rem;">&larr; Back to all works</a>
-                
-
-
-
-                <h2 class="poem-title" style="font-size: 3rem;">Symphony for Laura</h2>
-                <p class="poem-meta" style="font-size: 1.2rem;">By Von Simon | 2021</p>
-                
-                <div class="poem-excerpt" style="font-size: 1.4rem; line-height: 2;">There’s a pandemic in my pants
+I gave her my heart 
+My mind
+My body
+I gave her my ethereal disease`
+            },
+            {
+                title: "Symphony for Laura",
+                year: "2021",
+                author: "Von Simon",
+                text: `There’s a pandemic in my pants
 Every time you enter a room
 Every time you scratch your elbow
 And laugh
@@ -272,57 +265,199 @@ Waiting for their commander
 I wish you could feel my emulsion
 I wish you could feel my compulsion
 As I watch you take a sip from a colorful straw
-You’ve always liked soda</div>
+You’ve always liked soda`
+            },
 
-                <div style="margin-top: 4rem; padding-top: 2rem; border-top: 1px solid #ccc;">
-                    <h3>Reader Comments</h3>
-                    <p style="color: #666; font-style: italic;"><!-- Elfsight Comments | Untitled Comments -->
-<script src="https://elfsightcdn.com/platform.js" async></script>
-<div class="elfsight-app-092a66cf-8b79-4ff4-9154-f09f716b332b" data-elfsight-app-lazy></div></p>
-                </div>
-            </div>
+            {
+                title: "All Hallow's Eve",
+                year: "2021",
+                author: "Von Simon",
+                text: `There’s a chill in the air
+As you rattle my bones
+The ghost of desire won't leave me alone
+You haunt me
+You taunt me
+You make me want to slide into the bathroom of a dingy sports bar 
+And press my forehead against the door
+In agony, oh!
+Oh! Oh! Oh!
+My jack-o-lantern burns for you 
+As I howl at your moon
+Trick or treat
+Smell my feet
+Give me something 
+Good to eat`
+            },
+
+            {
+                title: "American Hussy",
+                year: "2021",
+                author: "Von Simon",
+                text: `America! America!
+Stop playing hard to get
+I want to calm your nerves
+and stroke your hair
+And get you spayed like you’re my pet cat
+
+America! Let your guard down
+I feel for you, great nation
+I want you to experience my revolutionary warhead
+On my rug with no ablation
+
+America! I ache for you
+I feel your internal fight
+Don’t you know I’m your Patriotic Python
+And I will squeeze you all through the night
+Even if you can’t decide whether to go left or right
+Open your mountains for me, America
+Please`
+            },
+
+            {
+                title: "Christmas Meditation",
+                year: "2021",
+                author: "Von Simon",
+                text: `Sitting in front of a fire with my Jolly Jezebel
+I wonder if she’s ever loved anyone
+As much as me
+
+She drinks my eggnog daily
+And rings my jingle bells
+And when she smiles
+I experience nativity all over again
+
+I wish Christmas was every day
+So I could swaddle her like the Baby Jesus
+And give her the gifts of my Magi
+
+What a bright time, baby
+It’s the right time, baby
+To rock
+The night
+Away
+`
+            },
+
+            {
+                title: "Chef's Kiss",
+                year: "2022",
+                author: "Von Simon",
+                text: `It’s the special way you eat that avocado
+That makes me want to taste your homemade guac
+They don’t stop talking about your roast beef
+All the way down the block
+When you asked Devon to come to your potluck
+I was torn between desire and rage
+Because I was not blessed with an invitation
+For I would feast on your buffet
+Any day
+I have fever dreams about your pastry
+It’s masty tasty
+Will you ever make it for me again that way
+With marzipan
+Marizipan
+Marzipan
+Marzipan
+Marzipan`
+            },
+
+            {
+                title: "Easter Hunt",
+                year: "2022",
+                author: "Von Simon",
+                text: `I’m on the hunt for eggs this year
+My bunny
+My honey-haired maiden
+So yummy
+Your fingers move
+I imagine their touch and I lose all control
+A resurrection is coming
+He is risen
+He is risen
+I long to utter those simple words to you alone
+In the hot darkness of morning
+He is risen 
+He is risen
+He is risen`
+            },
+
+            {
+                title: "Gobble",
+                year: "2022",
+                author: "Von Simon",
+                text: `I eyed the turkey
+As it lay crisp and oozy on the table
+It has not been stuffed yet
+It’s body longing for that bread
+Those leeks
+That unsalted butter
+And I thought of you
+Dad always overcooked the bird
+And I grew up tasting dry meat
+And longing for something moist
+And tender
+And steaming in my mouth
+Today
+I lick my fingers after the big feed
+And think about your pupils
+I am glutted
+But there is always room
+For dessert`
+            },
 
 
 
+            // TO ADD A NEW POEM: add a comma after the closing brace `}` above, 
+            // and paste a new block starting with `{` and ending with `}`
+        ];
 
-            <div id="poem-2" class="poem-detail" style="display: none;">
-                <a href="#" onclick="showHome(); return false;" style="color: var(--accent-red); text-decoration: none; font-weight: bold; display: inline-block; margin-bottom: 2rem;">&larr; Back to all works</a>
-                
-                <h2 class="poem-title" style="font-size: 3rem;">Ethereal Disease</h2>
-                <p class="poem-meta" style="font-size: 1.2rem;">By Von Simon | 2022</p>
-                
-                <div class="poem-excerpt" style="font-size: 1.4rem; line-height: 2;">You remind me of this girl I dated in high school
-A small girl
-With brown hair
-And an infectious laugh
+        /* =======================================================
+           SYSTEM CODE - NO NEED TO EDIT BELOW THIS LINE
+           ======================================================= */
+        
+        function buildWebsite() {
+            const sidebarList = document.getElementById('sidebar-list');
+            const homeFeed = document.getElementById('home-feed');
+            const fullPoemsContainer = document.getElementById('full-poems-container');
 
-I wanted to go swimming in her Petrie dish
-And catch her ethereal disease
-You remind me of this girl I dated in college 
-A pure girl
-Clean Breath
-Milky arms swaying on our smoldering walks to the 7-11
+            // Loop through the database and build the HTML for each poem
+            poemDatabase.forEach((poem, index) => {
+                const poemId = `poem-${index}`;
+                // Reverse the added number so the top item is the "newest"
+                const addedOrder = poemDatabase.length - index; 
 
-I gave her my heart 
-My mind
-My body
-I gave her my ethereal disease</div>
+                // 1. Build Sidebar Link
+                sidebarList.innerHTML += `
+                    <li data-title="${poem.title}" data-added="${addedOrder}">
+                        <a href="#" onclick="showPoem('${poemId}'); return false;">${poem.title}</a>
+                    </li>
+                `;
 
-                <div style="margin-top: 4rem; padding-top: 2rem; border-top: 1px solid #ccc;">
-                    <h3>Reader Comments</h3>
-                    <p style="color: #666; font-style: italic;">[Comment plugin code will go here]</p>
-                </div>
-            </div>
+                // 2. Build Home Feed Card (Auto-generates a 2-line excerpt)
+                const excerpt = poem.text.split('\n').filter(line => line.trim() !== '').slice(0, 2).join('\n') + '...';
+                homeFeed.innerHTML += `
+                    <article class="poem-card" data-title="${poem.title}" data-added="${addedOrder}">
+                        <a href="#" onclick="showPoem('${poemId}'); return false;">
+                            <h2 class="poem-title">${poem.title}</h2>
+                            <p class="poem-meta">By ${poem.author} | ${poem.year}</p>
+                            <p class="poem-excerpt">${excerpt}</p>
+                            <span class="read-more">Read Full Poem &rarr;</span>
+                        </a>
+                    </article>
+                `;
 
+                // 3. Build Full Poem Page
+                fullPoemsContainer.innerHTML += `
+                    <div id="${poemId}" class="poem-detail" style="display: none;">
+                        <a href="#" onclick="showHome(); return false;" style="color: var(--accent-red); text-decoration: none; font-weight: bold; display: inline-block; margin-bottom: 2rem;">&larr; Back to all works</a>
+                        <h2 class="poem-title" style="font-size: 3rem;">${poem.title}</h2>
+                        <p class="poem-meta" style="font-size: 1.2rem;">By ${poem.author} | ${poem.year}</p>
+                        <div class="poem-excerpt" style="font-size: 1.4rem; line-height: 2;">${poem.text}</div>
+                    </div>
+                `;
+            });
+        }
 
-
-
-
-        </main>
-    </div>
-
-    <script>
-        // 1. Function to switch between main feed and full poems
         function showPoem(poemId) {
             document.getElementById('home-feed').style.display = 'none';
             let poems = document.querySelectorAll('.poem-detail');
@@ -338,38 +473,31 @@ I gave her my ethereal disease</div>
             window.scrollTo(0, 0);
         }
 
-        // 2. NEW: Function to sort the poems
         function sortPoems() {
             const sortMethod = document.getElementById('sort-poems').value;
-            
-            // Get arrays of our cards and list items
             const feedContainer = document.getElementById('home-feed');
             const listContainer = document.getElementById('sidebar-list');
             const cards = Array.from(feedContainer.querySelectorAll('.poem-card'));
             const listItems = Array.from(listContainer.querySelectorAll('li'));
 
-            // Sorting logic
             const sorter = (a, b) => {
                 if (sortMethod === 'recent') {
-                    // Highest 'data-added' number goes first
                     return b.dataset.added - a.dataset.added; 
                 } else if (sortMethod === 'oldest') {
-                    // Lowest 'data-added' number goes first
                     return a.dataset.added - b.dataset.added;
                 } else if (sortMethod === 'a-z') {
-                    // Alphabetical by 'data-title'
                     return a.dataset.title.localeCompare(b.dataset.title);
                 }
             };
 
-            // Apply the sort
             cards.sort(sorter);
             listItems.sort(sorter);
-
-            // Re-attach them to the page in the new order
             cards.forEach(card => feedContainer.appendChild(card));
             listItems.forEach(item => listContainer.appendChild(item));
         }
+
+        // Run the builder when the page loads
+        window.onload = buildWebsite;
     </script>
 
 </body>
