@@ -403,8 +403,27 @@
         @media (max-width: 800px) {
             .layout-wrapper { flex-direction: column; }
             aside.sidebar { border-right: none; border-bottom: 1px solid rgba(139, 0, 0, 0.2); padding-right: 0; padding-bottom: 2rem; }
-            /* Keep right-aligned on mobile too */
-            .top-nav { position: static; justify-content: flex-end; margin-bottom: 1.5rem; }
+            
+            /* 1. Hides the sidebar when a poem is open */
+            aside.sidebar.hide-on-mobile { display: none !important; }
+
+            /* 2. Removes the share button on mobile */
+            .share-btn { display: none !important; }
+
+            /* 3. Reorders the header so socials drop to the bottom */
+            header {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                padding-top: 2.5rem;
+            }
+            .top-nav { 
+                position: static; 
+                order: 10; /* Forces it below the subtitle */
+                justify-content: center; 
+                margin-top: 1.5rem; 
+                margin-bottom: 0;
+            }
         }
     </style>
 </head>
@@ -1158,6 +1177,10 @@ Good to eat`
             
             const aboutPage = document.getElementById('about-author');
             if(aboutPage) aboutPage.style.display = 'block';
+            
+            // Hide sidebar menu on mobile
+            document.querySelector('.sidebar').classList.add('hide-on-mobile');
+            
             window.scrollTo(0, 0);
 
             if (currentCommentListener) {
@@ -1175,6 +1198,10 @@ Good to eat`
             if(aboutPage) aboutPage.style.display = 'none';
 
             document.getElementById(poemId).style.display = 'block';
+            
+            // Hide sidebar menu on mobile
+            document.querySelector('.sidebar').classList.add('hide-on-mobile');
+            
             window.scrollTo(0, 0);
 
             if (slug) loadCommentsForPoem(slug);
@@ -1188,6 +1215,10 @@ Good to eat`
             if(aboutPage) aboutPage.style.display = 'none';
 
             document.getElementById('home-feed').style.display = 'block';
+            
+            // Bring sidebar menu back on mobile home page
+            document.querySelector('.sidebar').classList.remove('hide-on-mobile');
+            
             window.scrollTo(0, 0);
 
             if (currentCommentListener) {
