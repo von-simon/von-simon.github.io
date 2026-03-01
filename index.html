@@ -3,18 +3,31 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Von Simon | The Acclaimed Feminist Poet</title>
+    <title>Von Simon | Feminist Poetry</title>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,900;1,400;1,900&display=swap" rel="stylesheet">
 
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+
     <style>
-        /* Global Styles */
+
+        .tiktok-mask {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            background-color: currentColor;
+            -webkit-mask: url('https://westernwatersheds.org/wp-content/uploads/2021/01/logo-tiktok.svg') no-repeat center / contain;
+            mask: url('https://westernwatersheds.org/wp-content/uploads/2021/01/logo-tiktok.svg') no-repeat center / contain;
+        }
+
         :root {
             --bg-color: #faf9f7;
             --text-color: #2c2c2c;
             --accent-red: #8b0000;
+            --gold: #d4af37; 
         }
 
         body {
@@ -26,12 +39,40 @@
             padding: 0;
         }
 
-        /* Header */
         header {
+            position: relative;
             text-align: center;
             padding: 4rem 2rem 2rem;
             border-bottom: 2px solid var(--accent-red);
             background-color: #fff;
+        }
+
+        /* Nav & Icons positioned firmly to the RIGHT */
+        .top-nav {
+            position: absolute;
+            top: 1.5rem;
+            right: 1.5rem;
+            display: flex;
+            gap: 1.2rem;
+            align-items: center;
+        }
+
+        .top-nav a {
+            color: #888;
+            transition: color 0.2s ease, transform 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            text-decoration: none;
+            font-family: sans-serif;
+            font-size: 0.9rem;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .top-nav a:hover {
+            color: var(--accent-red);
+            transform: scale(1.05);
         }
 
         .site-title {
@@ -49,7 +90,6 @@
             margin-top: 0.5rem;
         }
 
-        /* Two-Column Layout */
         .layout-wrapper {
             display: flex;
             max-width: 1200px;
@@ -58,12 +98,13 @@
             gap: 3rem;
         }
 
-        /* Sidebar */
         aside.sidebar {
             flex: 1;
             min-width: 250px;
             border-right: 1px solid rgba(139, 0, 0, 0.2);
             padding-right: 2rem;
+            display: flex;
+            flex-direction: column;
         }
 
         .sidebar h3 {
@@ -72,6 +113,47 @@
             font-size: 1.5rem;
             border-bottom: 1px solid #ccc;
             padding-bottom: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .popular-list {
+            list-style: none;
+            padding: 0;
+            margin: 0 0 2rem 0;
+            counter-reset: popular-counter;
+        }
+
+        .popular-list li {
+            margin-bottom: 0.8rem;
+            position: relative;
+            padding-left: 2rem;
+        }
+
+        .popular-list li::before {
+            counter-increment: popular-counter;
+            content: counter(popular-counter) ".";
+            position: absolute;
+            left: 0;
+            color: var(--accent-red);
+            font-weight: 900;
+        }
+
+        .popular-list a, .poem-list a {
+            text-decoration: none;
+            color: var(--text-color);
+            transition: color 0.3s ease;
+        }
+
+        .popular-list a:hover, .poem-list a:hover {
+            color: var(--accent-red);
+            font-style: italic;
+        }
+
+        .star-badge {
+            font-size: 0.85rem;
+            color: #888;
+            margin-left: 5px;
+            font-family: sans-serif;
         }
 
         .controls {
@@ -99,22 +181,9 @@
 
         .poem-list li {
             margin-bottom: 1rem;
-            order: 0; 
-        }
-
-        .poem-list a {
-            text-decoration: none;
-            color: var(--text-color);
             font-size: 1.1rem;
-            transition: color 0.3s ease;
         }
 
-        .poem-list a:hover {
-            color: var(--accent-red);
-            font-style: italic;
-        }
-
-        /* Main Content */
         main.content {
             flex: 3;
             display: flex;
@@ -128,7 +197,6 @@
             border-left: 4px solid var(--accent-red);
             box-shadow: 0 2px 10px rgba(0,0,0,0.03);
             transition: transform 0.2s ease;
-            order: 0; 
         }
 
         .poem-card:hover {
@@ -172,22 +240,194 @@
             letter-spacing: 1px;
         }
 
+        .star-btn {
+            background: none;
+            border: none;
+            font-size: 1.8rem;
+            color: #ccc;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 0;
+            line-height: 1;
+        }
+
+        .star-btn:hover { transform: scale(1.1); }
+        .star-btn.starred { color: var(--gold); }
+
+        .star-btn-count {
+            font-size: 0.9rem;
+            font-family: sans-serif;
+            color: #666;
+            margin-top: 4px;
+        }
+
+        .share-btn {
+            background: none;
+            border: 1px solid #ccc;
+            padding: 0.4rem 0.8rem;
+            font-family: 'Playfair Display', serif;
+            font-size: 0.9rem;
+            color: var(--text-color);
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-right: 15px;
+        }
+        .share-btn:hover {
+            border-color: var(--accent-red);
+            color: var(--accent-red);
+        }
+
+        /* Tightened Comments UI */
+        .comments-section {
+            margin-top: 4rem;
+            padding-top: 0.5rem; 
+            border-top: 1px solid rgba(139, 0, 0, 0.2);
+        }
+
+        .comments-section h3 {
+            font-size: 2rem;
+            color: var(--accent-red);
+            margin-top: 0; 
+            margin-bottom: 1.5rem;
+        }
+
+        .comment-form {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            background: #fff;
+            padding: 1.5rem;
+            border: 1px solid #eaeaea;
+        }
+
+        .comment-input {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.1rem;
+            padding: 0.8rem;
+            border: 1px solid #ccc;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+        }
+
+        textarea.comment-input {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .comment-submit {
+            align-self: flex-start;
+            background-color: var(--accent-red);
+            color: #fff;
+            border: none;
+            padding: 0.8rem 2rem;
+            font-family: 'Playfair Display', serif;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+
+        .comment-submit:hover { background-color: #600000; }
+
+        .comment-item {
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px dashed #ccc;
+        }
+
+        .comment-author {
+            font-weight: 900;
+            font-size: 1.1rem;
+            color: var(--text-color);
+            margin-bottom: 0.2rem;
+        }
+
+        .comment-date {
+            font-weight: normal;
+            font-size: 0.85rem;
+            color: #888;
+            font-style: italic;
+            margin-left: 8px;
+        }
+
+        .comment-text {
+            font-size: 1.05rem;
+            color: #555;
+            white-space: pre-wrap;
+            margin-bottom: 0.5rem;
+        }
+
+        .comment-actions {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .action-link {
+            background: none;
+            border: none;
+            color: #888;
+            font-size: 0.9rem;
+            font-family: sans-serif;
+            cursor: pointer;
+            padding: 0;
+            transition: color 0.2s;
+        }
+
+        .action-link:hover { color: var(--text-color); }
+        .action-link.star-active { color: var(--gold); font-weight: bold; }
+        .action-link.delete-btn { color: #cc0000; }
+        .action-link.delete-btn:hover { text-decoration: underline; }
+
+        .nested-comments {
+            margin-left: 2rem;
+            border-left: 2px solid rgba(139, 0, 0, 0.1);
+            padding-left: 1.5rem;
+            margin-top: 1rem;
+        }
+
+        .admin-link {
+            color: #ccc;
+            cursor: pointer;
+            font-size: 0.8rem;
+            margin-top: 10px;
+        }
+
         @media (max-width: 800px) {
-            .layout-wrapper {
-                flex-direction: column;
-            }
-            aside.sidebar {
-                border-right: none;
-                border-bottom: 1px solid rgba(139, 0, 0, 0.2);
-                padding-right: 0;
-                padding-bottom: 2rem;
-            }
+            .layout-wrapper { flex-direction: column; }
+            aside.sidebar { border-right: none; border-bottom: 1px solid rgba(139, 0, 0, 0.2); padding-right: 0; padding-bottom: 2rem; }
+            /* Keep right-aligned on mobile too */
+            .top-nav { position: static; justify-content: flex-end; margin-bottom: 1.5rem; }
         }
     </style>
 </head>
 <body>
 
     <header>
+        <div class="top-nav">
+            <a href="https://instagram.com/vonsimonpoetry" target="_blank" title="Instagram">
+                <svg width="22" height="22" viewBox="0 0 448 512" fill="currentColor"><path d="M224.1 141c-63.6 0-114.9 51.3-114.9 114.9s51.3 114.9 114.9 114.9S339 319.5 339 255.9 287.7 141 224.1 141zm0 189.6c-41.1 0-74.7-33.5-74.7-74.7s33.5-74.7 74.7-74.7 74.7 33.5 74.7 74.7-33.6 74.7-74.7 74.7zm146.4-194.3c0 14.9-12 26.8-26.8 26.8-14.9 0-26.8-12-26.8-26.8s12-26.8 26.8-26.8 26.8 12.2 26.8 26.8zm76.1 27.2c-1.7-35.9-9.9-67.7-36.2-93.9-26.2-26.2-58-34.4-93.9-36.2-37-2.1-147.9-2.1-184.9 0-35.8 1.7-67.6 9.9-93.9 36.1s-34.4 58-36.2 93.9c-2.1 37-2.1 147.9 0 184.9 1.7 35.9 9.9 67.7 36.2 93.9s58 34.4 93.9 36.2c37 2.1 147.9 2.1 184.9 0 35.9-1.7 67.7-9.9 93.9-36.2 26.2-26.2 34.4-58 36.2-93.9 2.1-37 2.1-147.8 0-184.8zM398.8 388c-7.8 19.6-22.9 34.7-42.6 42.6-29.5 11.7-99.5 9-132.1 9s-102.7 2.6-132.1-9c-19.6-7.8-34.7-22.9-42.6-42.6-11.7-29.5-9-99.5-9-132.1s-2.6-102.7 9-132.1c7.8-19.6 22.9-34.7 42.6-42.6 29.5-11.7 99.5-9 132.1-9s102.7-2.6 132.1 9c19.6 7.8 34.7 22.9 42.6 42.6 11.7 29.5 9 99.5 9 132.1s2.7 102.7-9 132.1z"/></svg>
+            </a>
+            <a href="https://tiktok.com/@vonsimonpoetry" target="_blank" title="TikTok">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1-.1z"/>
+                </svg>
+            </a>
+            <a href="https://youtube.com/@vonsimonpoetry" target="_blank" title="YouTube">
+                <svg width="24" height="24" viewBox="0 0 576 512" fill="currentColor"><path d="M549.7 124.1c-6.3-23.7-24.8-42.3-48.3-48.6C458.8 64 288 64 288 64S117.2 64 74.6 75.5c-23.5 6.3-42 24.9-48.3 48.6-11.4 42.9-11.4 132.3-11.4 132.3s0 89.4 11.4 132.3c6.3 23.7 24.8 41.5 48.3 47.8C117.2 448 288 448 288 448s170.8 0 213.4-11.5c23.5-6.3 42-24.2 48.3-47.8 11.4-42.9 11.4-132.3 11.4-132.3s0-89.4-11.4-132.3zm-317.5 213.5V175.2l142.7 81.2-142.7 81.2z"/></svg>
+            </a>
+            <a href="https://vonsimonstore.com" target="_blank" title="Shop">
+                <svg width="20" height="20" viewBox="0 0 576 512" fill="currentColor"><path d="M0 24C0 10.7 10.7 0 24 0H69.5c22 0 41.5 12.8 50.6 32h411c26.3 0 45.5 25 38.6 50.4l-41 152.3c-8.5 31.4-37 53.3-69.5 53.3H170.7l5.4 28.5c2.2 11.3 12.1 19.5 23.6 19.5H488c13.3 0 24 10.7 24 24s-10.7 24-24 24H199.7c-34.6 0-64.3-24.6-70.7-58.5L77.4 54.5c-.7-3.8-4-6.5-7.9-6.5H24C10.7 48 0 37.3 0 24zM128 464a48 48 0 1 1 96 0 48 48 0 1 1 -96 0zm336-48a48 48 0 1 1 0 96 48 48 0 1 1 0-96z"/></svg> Shop
+            </a>
+        </div>
+
         <p>Read the works of</p>
         <h1 class="site-title"><i>Von Simon</i></h1>
         <p class="site-subtitle">The Acclaimed Feminist Poet</p>
@@ -195,8 +435,13 @@
 
     <div class="layout-wrapper">
         <aside class="sidebar">
-            <h3>All Works</h3>
             
+            <h3 style="margin-top: 0;"><a href="#about" style="color: var(--accent-red); text-decoration: none; font-style: italic;">About the Author</a></h3>
+
+            <h3>Most Popular</h3>
+            <ul class="popular-list" id="popular-list"></ul>
+
+            <h3>All Works</h3>
             <div class="controls">
                 <label for="sort-poems" style="font-size: 0.9rem; color: #666; display: block; margin-bottom: 0.5rem;">Sort by:</label>
                 <select id="sort-poems" onchange="sortPoems()">
@@ -205,35 +450,194 @@
                     <option value="a-z">Alphabetical (A-Z)</option>
                 </select>
             </div>
-
             <ul class="poem-list" id="sidebar-list"></ul>
+            
+            <div id="admin-panel" style="display: none; margin-top: auto; padding-top: 2rem; border-top: 1px solid #ccc;">
+                <h4 style="color: var(--accent-red); margin-top: 0; margin-bottom: 10px;">Admin Dashboard</h4>
+                <button onclick="lockAllPoems(true)" style="width: 100%; margin-bottom: 5px; cursor:pointer; padding: 5px;">Lock All Comments</button>
+                <button onclick="lockAllPoems(false)" style="width: 100%; cursor:pointer; padding: 5px;">Unlock All Comments</button>
+            </div>
+            <div class="admin-link" id="admin-login-btn" onclick="toggleAdminMode()" style="margin-top: 1rem;">Admin Login</div>
         </aside>
 
         <main class="content">
             <div id="home-feed"></div>
+
+            <div id="about-author" class="poem-detail" style="display: none;">
+                <a href="#" onclick="window.location.hash=''; return false;" style="color: var(--accent-red); text-decoration: none; font-weight: bold; display: inline-block; margin-bottom: 2rem;">&larr; Back to all works</a>
+                
+                <div style="display: flex; gap: 2.5rem; align-items: flex-start; flex-wrap: wrap;">
+                    
+                    <div style="flex: 1; min-width: 250px; max-width: 320px;">
+                        <img src="https://von-simon.github.io/images/IMG_1930.JPG" alt="Von Simon" style="width: 100%; height: auto; border: 4px solid var(--accent-red); box-shadow: 0 4px 15px rgba(0,0,0,0.1); display: block;">
+                        
+                        <div style="margin-top: 1.5rem; padding: 1.5rem; background: #fff; border: 1px dashed var(--accent-red); text-align: center;">
+                            <h4 style="margin-top: 0; color: var(--accent-red); margin-bottom: 0.5rem; font-size: 1.2rem;">Spread the Vonomenon!</h4>
+                            <p style="color: #555; font-size: 0.95rem; margin-top: 0; margin-bottom: 1rem; line-height: 1.4;">Download Von's portrait, print it out, and put it up in your neighbourhood to spread the word of his feminist poetry.</p>
+                            <a href="https://von-simon.github.io/images/IMG_1930.JPG" download="Von_Simon_Portrait.jpg" target="_blank" class="comment-submit" style="text-decoration: none; display: inline-block; padding: 0.6rem 1.2rem; font-size: 1rem; width: 100%; box-sizing: border-box;">Download Portrait</a>
+                        </div>
+                    </div>
+
+                    <div style="flex: 2; min-width: 300px;">
+                        <h2 class="poem-title" style="font-size: 3rem; margin: 0 0 0.5rem 0; padding: 0; line-height: 0;"><i>About the Author</i></h2>
+                        
+                        <div class="poem-excerpt" style="font-size: 1.25rem; line-height: 1.6; margin-top: 0; padding: 0;">
+                            <p style="margin-top: 0; margin-bottom: 0;">Von Simon is the acclaimed feminist poet. He is known most notably for his works <em>Symphony For Laura</em> and <em>Ethereal Disease</em>. Von began writing poetry at the age of 22. He became inspired when a girl he was interested in carried around poetry books. He realized that "no one was fighting for her voice and for women," so Von took it upon himself to become that voice. In 2021, Von began officially sharing his poetry online, submitting his poems for “your poetry contest. He ended up winning the Eli Walton Poetry Award. In 2025, his piece <em>Ethereal Disease</em> was featured in the Scarlet Review (Volume 2). Outside of the literary world, Von enjoys cereal or eggs for breakfast, loves baklava, and once shared a bag of Fritos on the subway with Adam Driver. He’s offered to write a poem for Barack Obama (though the former President declined). He is an uncle to a nephew who loves soccer and Uno. Simon plans to publish an anthology of his works as soon as publishing companies reach out.</p>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
 
             <div id="full-poems-container"></div>
         </main>
     </div>
 
     <script>
-        /* =======================================================
-           PASTE YOUR POEMS HERE!
-           Follow the format below. Enclose the poem text in backticks (`).
-           The newest poems should go at the TOP of the list.
-           ======================================================= */
+        /* ====================================================================================
+           1. YOUR POETRY DATABASE
+           ------------------------------------------------------------------------------------
+           TO ADD A NEW POEM: 
+           Copy the block of code inside the {} braces and paste it ABOVE the rest.
+           Make sure there is a comma (,) after the closing brace.
+           ==================================================================================== */
+        
         const poemDatabase = [
-            {
-                title: "Ethereal Disease",
-                year: "2022",
-                author: "Von Simon",
+            { 
+                title: "Wintertide Ballad", 
+                year: "2026", 
+                author: "Von Simon", 
+                baseStars: 0, 
+                text: `I want to be huddled in a snowstorm with you
+Neatly folded in on each other
+Like the nest of just-born baby bunnies
+That I found in the vegetable garden when I was 6
+They were so blind
+Limp, even
+So tiny
+Tiny
+Tiny
+And blind
+If you scampered outside in 12 degrees
+In nothing but a t-shirt
+Your collajulating thighs calling for help
+I would run after you
+And grab your small part
+And pull you into my heaving fur
+And eat you to shield you
+From predators` 
+            },
+            { 
+                title: "Irish Desire", 
+                year: "2025", 
+                author: "Von Simon", 
+                baseStars: 0, 
+                text: `The bar was loud and sticky with ale
+And the men sang songs
+And I ogled your pale skin
+It was rainy and cold
+On that St. Patty's day
+And I wished I could whisk you
+To Montego Bay
+For I’m just a lad
+Who loves you clad in a bikini
+And wishes that you’d offer me
+A bite of your panini
+Paroxysms of fun
+May it never be done
+Reading poems in the sun
+Chanting
+“Von Number One”` 
+            },
+            { 
+                title: "In Your Harbor", 
+                year: "2024", 
+                author: "Von Simon", 
+                baseStars: 0, 
+                text: `I told her she was like the ocean today
+Her skin glistening like the sun-kissed water
+Her mouth exploding with algae and kelp
+Kelp
+Kelp me, Rhonda
+Let me rest my head upon your barnacle rocks
+Bobble your buoys and shake my face in your ocean spray
+The say the shellfish is rare these days
+But I know you will always deliver
+My favorite 
+Seafood` 
+            },
+            { 
+                title: "Song of Summer", 
+                year: "2023", 
+                author: "Von Simon", 
+                baseStars: 0, 
+                text: `I was anxious for your unguis
+That night of the egg cream summer
+Your limbs drift through the tall grass
+And the crickets convulse
+And the way you giggle makes me want to 
+Pee in a frog’s mouth
+I look to the cosmos
+And think about your papaya flesh
+I have not ruptured in far too long
+Mallory` 
+            },
+            { 
+                title: "Gobble", 
+                year: "2022", 
+                author: "Von Simon", 
+                baseStars: 0, 
+                text: `I eyed the turkey
+As it lay crisp and oozy on the table
+It has not been stuffed yet
+It’s body longing for that bread
+Those leeks
+That unsalted butter
+And I thought of you
+Dad always overcooked the bird
+And I grew up tasting dry meat
+And longing for something moist
+And tender
+And steaming in my mouth
+Today
+I lick my fingers after the big feed
+And think about your pupils
+I am glutted
+But there is always room
+For dessert` 
+            },
+            { 
+                title: "Easter Hunt", 
+                year: "2022", 
+                author: "Von Simon", 
+                baseStars: 0, 
+                text: `I’m on the hunt for eggs this year
+My bunny
+My honey-haired maiden
+So yummy
+Your fingers move
+I imagine their touch and I lose all control
+A resurrection is coming
+He is risen
+He is risen
+I long to utter those simple words to you alone
+In the hot darkness of morning
+He is risen 
+He is risen
+He is risen` 
+            },
+            { 
+                title: "Ethereal Disease", 
+                year: "2022", 
+                author: "Von Simon", 
+                baseStars: 0, 
                 text: `You remind me of this girl I dated in high school
 A small girl
 With brown hair
 And an infectious laugh
+
 I wanted to go swimming in her Petrie dish
 And catch her ethereal disease
-
 You remind me of this girl I dated in college 
 A pure girl
 Clean Breath
@@ -242,12 +646,36 @@ Milky arms swaying on our smoldering walks to the 7-11
 I gave her my heart 
 My mind
 My body
-I gave her my ethereal disease`
+I gave her my ethereal disease` 
             },
-            {
-                title: "Symphony for Laura",
-                year: "2021",
-                author: "Von Simon",
+            { 
+                title: "Chef's Kiss", 
+                year: "2022", 
+                author: "Von Simon", 
+                baseStars: 0, 
+                text: `It’s the special way you eat that avocado
+That makes me want to taste your homemade guac
+They don’t stop talking about your roast beef
+All the way down the block
+When you asked Devon to come to your potluck
+I was torn between desire and rage
+Because I was not blessed with an invitation
+For I would feast on your buffet
+Any day
+I have fever dreams about your pastry
+It’s masty tasty
+Will you ever make it for me again that way
+With marzipan
+Marizipan
+Marzipan
+Marzipan
+Marizipan` 
+            },
+            { 
+                title: "Symphony for Laura", 
+                year: "2021", 
+                author: "Von Simon", 
+                baseStars: 0, 
                 text: `There’s a pandemic in my pants
 Every time you enter a room
 Every time you scratch your elbow
@@ -266,58 +694,13 @@ Waiting for their commander
 I wish you could feel my emulsion
 I wish you could feel my compulsion
 As I watch you take a sip from a colorful straw
-You’ve always liked soda`
+You’ve always liked soda` 
             },
-
-            {
-                title: "All Hallow's Eve",
-                year: "2021",
-                author: "Von Simon",
-                text: `There’s a chill in the air
-As you rattle my bones
-The ghost of desire won't leave me alone
-You haunt me
-You taunt me
-You make me want to slide into the bathroom of a dingy sports bar 
-And press my forehead against the door
-In agony, oh!
-Oh! Oh! Oh!
-My jack-o-lantern burns for you 
-As I howl at your moon
-Trick or treat
-Smell my feet
-Give me something 
-Good to eat`
-            },
-
-            {
-                title: "American Hussy",
-                year: "2021",
-                author: "Von Simon",
-                text: `America! America!
-Stop playing hard to get
-I want to calm your nerves
-and stroke your hair
-And get you spayed like you’re my pet cat
-
-America! Let your guard down
-I feel for you, great nation
-I want you to experience my revolutionary warhead
-On my rug with no ablation
-
-America! I ache for you
-I feel your internal fight
-Don’t you know I’m your Patriotic Python
-And I will squeeze you all through the night
-Even if you can’t decide whether to go left or right
-Open your mountains for me, America
-Please`
-            },
-
-            {
-                title: "Christmas Meditation",
-                year: "2021",
-                author: "Von Simon",
+            { 
+                title: "Christmas Meditation", 
+                year: "2021", 
+                author: "Von Simon", 
+                baseStars: 0, 
                 text: `Sitting in front of a fire with my Jolly Jezebel
 I wonder if she’s ever loved anyone
 As much as me
@@ -335,223 +718,482 @@ What a bright time, baby
 It’s the right time, baby
 To rock
 The night
-Away
-`
+Away` 
             },
+            { 
+                title: "American Hussy", 
+                year: "2021", 
+                author: "Von Simon", 
+                baseStars: 0, 
+                text: `America! America!
+Stop playing hard to get
+I want to calm your nerves
+and stroke your hair
+And get you spayed like you’re my pet cat
 
-            {
-                title: "Chef's Kiss",
-                year: "2022",
-                author: "Von Simon",
-                text: `It’s the special way you eat that avocado
-That makes me want to taste your homemade guac
-They don’t stop talking about your roast beef
-All the way down the block
-When you asked Devon to come to your potluck
-I was torn between desire and rage
-Because I was not blessed with an invitation
-For I would feast on your buffet
-Any day
-I have fever dreams about your pastry
-It’s masty tasty
-Will you ever make it for me again that way
-With marzipan
-Marzipan
-Marzipan
-Marzipan
-Marzipan`
+America! Let your guard down
+I feel for you, great nation
+I want you to experience my revolutionary warhead
+On my rug with no ablation
+
+America! I ache for you
+I feel your internal fight
+Don’t you know I’m your Patriotic Python
+And I will squeeze you all through the night
+Even if you can’t decide whether to go left or right
+Open your mountains for me, America
+Please` 
             },
-
-            {
-                title: "Easter Hunt",
-                year: "2022",
-                author: "Von Simon",
-                text: `I’m on the hunt for eggs this year
-My bunny
-My honey-haired maiden
-So yummy
-Your fingers move
-I imagine their touch and I lose all control
-A resurrection is coming
-He is risen
-He is risen
-I long to utter those simple words to you alone
-In the hot darkness of morning
-He is risen 
-He is risen
-He is risen`
-            },
-
-            {
-                title: "Gobble",
-                year: "2022",
-                author: "Von Simon",
-                text: `I eyed the turkey
-As it lay crisp and oozy on the table
-It has not been stuffed yet
-It’s body longing for that bread
-Those leeks
-That unsalted butter
-And I thought of you
-Dad always overcooked the bird
-And I grew up tasting dry meat
-And longing for something moist
-And tender
-And steaming in my mouth
-Today
-I lick my fingers after the big feed
-And think about your pupils
-I am glutted
-But there is always room
-For dessert`
-            },
-
-            {
-                title: "Wintertide Ballad",
-                year: "2026",
-                author: "Von Simon",
-                text: `I want to be huddled in a snowstorm with you
-Neatly folded in on each other
-Like the nest of just-born baby bunnies
-That I found in the vegetable garden when I was 6
-They were so blind
-Limp, even
-So tiny
-Tiny
-Tiny
-And blind
-If you scampered outside in 12 degrees
-In nothing but a t-shirt
-Your collajulating thighs calling for help
-I would run after you
-And grab your small part
-And pull you into my heaving fur
-And eat you to shield you
-From predators`
-            },
-
-            {
-                title: "In Your Harbor",
-                year: "2024",
-                author: "Von Simon",
-                text: `I told her she was like the ocean today
-Her skin glistening like the sun-kissed water
-Her mouth exploding with algae and kelp
-Kelp
-Kelp me, Rhonda
-Let me rest my head upon your barnacle rocks
-Bobble your buoys and shake my face in your ocean spray
-The say the shellfish is rare these days
-But I know you will always deliver
-My favorite 
-Seafood`
-            },
-
-            {
-                title: "Song of Summer",
-                year: "2023",
-                author: "Von Simon",
-                text: `I was anxious for your unguis
-That night of the egg cream summer
-Your limbs drift through the tall grass
-And the crickets convulse
-And the way you giggle makes me want to 
-Pee in a frog’s mouth
-I look to the cosmos
-And think about your papaya flesh
-I have not ruptured in far too long
-Mallory`
-            },
-
-            {
-                title: "Irish Desire",
-                year: "2025",
-                author: "Von Simon",
-                text: `The bar was loud and sticky with ale
-And the men sang songs
-And I ogled your pale skin
-It was rainy and cold
-On that St. Patty's day
-And I wished I could whisk you
-To Montego Bay
-For I’m just a lad
-Who loves you clad in a bikini
-And wishes that you’d offer me
-A bite of your panini
-Paroxysms of fun
-May it never be done
-Reading poems in the sun
-Chanting
-“Von Number One”`
-            },
-
-
-
-
-            // TO ADD A NEW POEM: add a comma after the closing brace `}` above, 
-            // and paste a new block starting with `{` and ending with `}`
+            { 
+                title: "All Hallow's Eve", 
+                year: "2021", 
+                author: "Von Simon", 
+                baseStars: 0, 
+                text: `There’s a chill in the air
+As you rattle my bones
+The ghost of desire won't leave me alone
+You haunt me
+You taunt me
+You make me want to slide into the bathroom of a dingy sports bar 
+And press my forehead against the door
+In agony, oh!
+Oh! Oh! Oh!
+My jack-o-lantern burns for you 
+As I howl at your moon
+Trick or treat
+Smell my feet
+Give me something 
+Good to eat` 
+            }
         ];
 
-        /* =======================================================
-           SYSTEM CODE - NO NEED TO EDIT BELOW THIS LINE
-           ======================================================= */
+
+        /* ====================================================================================
+           2. SYSTEM CODE (DO NOT EDIT BELOW THIS LINE UNLESS YOU KNOW JAVASCRIPT)
+           ==================================================================================== */
         
-        function buildWebsite() {
+        const firebaseConfig = {
+            apiKey: "AIzaSyDMjQGQGc6mH-Pg8tEG3oYsWP6TGKyCSC0",
+            authDomain: "von-simon-comments.firebaseapp.com",
+            projectId: "von-simon-comments",
+            storageBucket: "von-simon-comments.firebasestorage.app",
+            messagingSenderId: "189729229698",
+            appId: "1:189729229698:web:0ec6c7777738ee482f1d9b"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        function createSlug(title) {
+            return title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+        }
+
+        function sharePoem(slug, btnElement) {
+            const url = window.location.origin + window.location.pathname + '#' + slug;
+            navigator.clipboard.writeText(url).then(() => {
+                const originalText = btnElement.innerHTML;
+                btnElement.innerHTML = '✓ Copied!';
+                setTimeout(() => { btnElement.innerHTML = originalText; }, 2000);
+            });
+        }
+
+        function isAdmin() {
+            return localStorage.getItem('isAdmin') === 'true';
+        }
+
+        function toggleAdminMode() {
+            if (isAdmin()) {
+                localStorage.removeItem('isAdmin');
+                alert("Logged out of Admin Mode.");
+                location.reload();
+            } else {
+                const password = prompt("Enter Admin Password:");
+                if (password === "bylerendgame07") {
+                    localStorage.setItem('isAdmin', 'true');
+                    alert("Admin Mode Activated! You can now manage comments.");
+                    location.reload();
+                } else if (password) {
+                    alert("Incorrect Password.");
+                }
+            }
+        }
+
+        function togglePoemLock(slug) {
+            const poemRef = db.collection('poems').doc(slug);
+            poemRef.get().then(doc => {
+                const currentLock = doc.exists ? doc.data().isLocked : false;
+                poemRef.set({ isLocked: !currentLock }, { merge: true });
+            });
+        }
+
+        function lockAllPoems(lockState) {
+            if(confirm(`Are you sure you want to ${lockState ? 'lock' : 'unlock'} all comments?`)) {
+                const batch = db.batch();
+                poemDatabase.forEach(poem => {
+                    const poemRef = db.collection('poems').doc(poem.slug);
+                    batch.set(poemRef, { isLocked: lockState }, { merge: true });
+                });
+                batch.commit().then(() => alert(`All poems ${lockState ? 'locked' : 'unlocked'}.`));
+            }
+        }
+
+        function buildWebsiteBase() {
+            if (isAdmin()) {
+                document.getElementById('admin-panel').style.display = 'block';
+                document.getElementById('admin-login-btn').innerText = "Logout Admin";
+            }
+
             const sidebarList = document.getElementById('sidebar-list');
             const homeFeed = document.getElementById('home-feed');
             const fullPoemsContainer = document.getElementById('full-poems-container');
 
-            // Loop through the database and build the HTML for each poem
             poemDatabase.forEach((poem, index) => {
+                poem.slug = createSlug(poem.title);
+                poem.currentStars = poem.baseStars || 0; 
+                poem.isLocked = false;
+                
                 const poemId = `poem-${index}`;
-                // Reverse the added number so the top item is the "newest"
                 const addedOrder = poemDatabase.length - index; 
 
-                // 1. Build Sidebar Link
-                sidebarList.innerHTML += `
-                    <li data-title="${poem.title}" data-added="${addedOrder}">
-                        <a href="#" onclick="showPoem('${poemId}'); return false;">${poem.title}</a>
-                    </li>
-                `;
+                sidebarList.innerHTML += `<li data-title="${poem.title}" data-added="${addedOrder}"><a href="#${poem.slug}">${poem.title}</a></li>`;
 
-                // 2. Build Home Feed Card (Auto-generates a 2-line excerpt)
                 const excerpt = poem.text.split('\n').filter(line => line.trim() !== '').slice(0, 2).join('\n') + '...';
                 homeFeed.innerHTML += `
                     <article class="poem-card" data-title="${poem.title}" data-added="${addedOrder}">
-                        <a href="#" onclick="showPoem('${poemId}'); return false;">
-                            <h2 class="poem-title">${poem.title}</h2>
-                            <p class="poem-meta">By ${poem.author} | ${poem.year}</p>
-                            <p class="poem-excerpt">${excerpt}</p>
-                            <span class="read-more">Read Full Poem &rarr;</span>
-                        </a>
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                            <div style="flex: 1;">
+                                <a href="#${poem.slug}">
+                                    <h2 class="poem-title">${poem.title}</h2>
+                                    <p class="poem-meta">By ${poem.author} | ${poem.year}</p>
+                                    <p class="poem-excerpt">${excerpt}</p>
+                                    <span class="read-more">Read Full Poem &rarr;</span>
+                                </a>
+                            </div>
+                            <div style="margin-left: 1rem; text-align: center;">
+                                <button id="feed-star-btn-${poem.slug}" class="star-btn" onclick="togglePoemStar('${poem.slug}'); return false;">☆</button>
+                            </div>
+                        </div>
                     </article>
                 `;
 
-                // 3. Build Full Poem Page
+                const adminLockBtn = isAdmin() ? `<div style="margin-bottom:1rem;"><button id="admin-lock-btn-${poem.slug}" onclick="togglePoemLock('${poem.slug}')" style="background:#333; color:white; padding:5px 10px; border:none; cursor:pointer;">Admin: Lock Comments</button></div>` : '';
+
                 fullPoemsContainer.innerHTML += `
                     <div id="${poemId}" class="poem-detail" style="display: none;">
-                        <a href="#" onclick="showHome(); return false;" style="color: var(--accent-red); text-decoration: none; font-weight: bold; display: inline-block; margin-bottom: 2rem;">&larr; Back to all works</a>
-                        <h2 class="poem-title" style="font-size: 3rem;">${poem.title}</h2>
-                        <p class="poem-meta" style="font-size: 1.2rem;">By ${poem.author} | ${poem.year}</p>
+                        <a href="#" onclick="window.location.hash=''; return false;" style="color: var(--accent-red); text-decoration: none; font-weight: bold; display: inline-block; margin-bottom: 2rem;">&larr; Back to all works</a>
+                        
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <h2 class="poem-title" style="font-size: 3rem; margin: 0;">${poem.title}</h2>
+                            <div style="display: flex; align-items: center;">
+                                <button class="share-btn" onclick="sharePoem('${poem.slug}', this)" title="Copy Link">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg> 
+                                    Share
+                                </button>
+                                <button id="full-star-btn-${poem.slug}" class="star-btn" onclick="togglePoemStar('${poem.slug}'); return false;" style="font-size: 2.5rem;">☆</button>
+                            </div>
+                        </div>
+                        
+                        <p class="poem-meta" style="font-size: 1.2rem; margin-top: 0.5rem;">By ${poem.author} | ${poem.year}</p>
                         <div class="poem-excerpt" style="font-size: 1.4rem; line-height: 2;">${poem.text}</div>
+                        
+                        <div class="comments-section">
+                            <h3>Reader Comments</h3>
+                            ${adminLockBtn}
+                            
+                            <div id="comment-locked-msg-${poem.slug}" style="display:none; color: #888; font-style: italic; margin-bottom: 1rem;">
+                                Comments are currently disabled for this poem.
+                            </div>
+
+                            <div id="comment-form-container-${poem.slug}">
+                                <form class="comment-form" onsubmit="submitComment(event, '${poem.slug}')">
+                                    <input type="text" id="comment-name-${poem.slug}" placeholder="Your Name" required class="comment-input">
+                                    <textarea id="comment-text-${poem.slug}" placeholder="Leave a thought..." required class="comment-input"></textarea>
+                                    <button type="submit" class="comment-submit">Post Comment</button>
+                                </form>
+                            </div>
+                            
+                            <div id="comment-list-${poem.slug}"></div>
+                        </div>
                     </div>
                 `;
             });
         }
 
-        function showPoem(poemId) {
+        function checkCommentLocks() {
+            poemDatabase.forEach(poem => {
+                const formDiv = document.getElementById(`comment-form-container-${poem.slug}`);
+                const lockedMsg = document.getElementById(`comment-locked-msg-${poem.slug}`);
+                const lockBtn = document.getElementById(`admin-lock-btn-${poem.slug}`);
+                const replyBtns = document.querySelectorAll(`.reply-action-btn-${poem.slug}`);
+
+                if (formDiv && lockedMsg) {
+                    if (poem.isLocked) {
+                        formDiv.style.display = 'none';
+                        lockedMsg.style.display = 'block';
+                        replyBtns.forEach(btn => btn.style.display = 'none');
+                    } else {
+                        formDiv.style.display = 'block';
+                        lockedMsg.style.display = 'none';
+                        replyBtns.forEach(btn => btn.style.display = 'inline-block');
+                    }
+                }
+                
+                if (lockBtn) {
+                    lockBtn.innerText = poem.isLocked ? "Admin: Unlock Comments" : "Admin: Lock Comments";
+                    lockBtn.style.backgroundColor = poem.isLocked ? "#28a745" : "#333";
+                }
+            });
+        }
+
+        function updateDynamicUI() {
+            let localStars = JSON.parse(localStorage.getItem('vonSimonStars')) || {};
+            const popularList = document.getElementById('popular-list');
+            
+            popularList.innerHTML = '';
+            const topPoems = [...poemDatabase].filter(p => p.currentStars > 0).sort((a, b) => b.currentStars - a.currentStars).slice(0, 5);
+            
+            if(topPoems.length === 0) {
+                popularList.innerHTML = '<li style="color:#888; font-style:italic;">No favorites yet</li>';
+            } else {
+                topPoems.forEach(poem => {
+                    popularList.innerHTML += `<li><a href="#${poem.slug}">${poem.title}</a> <span class="star-badge">${poem.currentStars} ★</span></li>`;
+                });
+            }
+
+            poemDatabase.forEach(poem => {
+                const isStarred = localStars[poem.slug];
+                const starIcon = isStarred ? '★' : '☆';
+                const starClass = isStarred ? 'star-btn starred' : 'star-btn';
+
+                const feedBtn = document.getElementById(`feed-star-btn-${poem.slug}`);
+                if (feedBtn) {
+                    feedBtn.className = starClass;
+                    feedBtn.innerHTML = `${starIcon} <span class="star-btn-count">${poem.currentStars}</span>`;
+                }
+
+                const fullBtn = document.getElementById(`full-star-btn-${poem.slug}`);
+                if (fullBtn) {
+                    fullBtn.className = starClass;
+                    fullBtn.innerHTML = `${starIcon} <span class="star-btn-count" style="font-size: 1.2rem;">${poem.currentStars}</span>`;
+                }
+            });
+        }
+        
+        function togglePoemStar(slug) {
+            let localStars = JSON.parse(localStorage.getItem('vonSimonStars')) || {};
+            const poemRef = db.collection('poems').doc(slug);
+            
+            if (localStars[slug]) {
+                delete localStars[slug];
+                poemRef.set({ stars: firebase.firestore.FieldValue.increment(-1) }, { merge: true });
+            } else {
+                localStars[slug] = true;
+                poemRef.set({ stars: firebase.firestore.FieldValue.increment(1) }, { merge: true });
+            }
+            localStorage.setItem('vonSimonStars', JSON.stringify(localStars));
+        }
+
+        function startListeningToCloud() {
+            db.collection("poems").onSnapshot((querySnapshot) => {
+                querySnapshot.forEach((doc) => {
+                    const dbData = doc.data();
+                    const poem = poemDatabase.find(p => p.slug === doc.id);
+                    if (poem) {
+                        poem.currentStars = (poem.baseStars || 0) + (dbData.stars || 0);
+                        poem.isLocked = dbData.isLocked || false;
+                    }
+                });
+                updateDynamicUI();
+                checkCommentLocks();
+            });
+        }
+
+        function submitComment(event, poemSlug, parentId = null) {
+            event.preventDefault(); 
+            const prefix = parentId ? `reply-${parentId}` : `comment`;
+            const nameInput = document.getElementById(`${prefix}-name-${parentId || poemSlug}`);
+            const textInput = document.getElementById(`${prefix}-text-${parentId || poemSlug}`);
+            
+            const name = nameInput.value.trim();
+            const text = textInput.value.trim();
+            if (!name || !text) return;
+
+            db.collection('comments').add({
+                poemSlug: poemSlug,
+                parentId: parentId,
+                name: name,
+                text: text,
+                stars: 0,
+                timestamp: firebase.firestore.FieldValue.serverTimestamp()
+            }).then(() => {
+                nameInput.value = '';
+                textInput.value = '';
+                if(parentId) toggleReplyBox(parentId); 
+            });
+        }
+
+        function toggleCommentStar(commentId) {
+            let localStars = JSON.parse(localStorage.getItem('vonSimonCommentStars')) || {};
+            const commentRef = db.collection('comments').doc(commentId);
+            
+            if (localStars[commentId]) {
+                delete localStars[commentId];
+                commentRef.update({ stars: firebase.firestore.FieldValue.increment(-1) });
+            } else {
+                localStars[commentId] = true;
+                commentRef.update({ stars: firebase.firestore.FieldValue.increment(1) });
+            }
+            localStorage.setItem('vonSimonCommentStars', JSON.stringify(localStars));
+        }
+
+        function deleteComment(commentId) {
+            if(confirm("Admin: Are you sure you want to permanently delete this comment?")) {
+                db.collection('comments').doc(commentId).delete();
+            }
+        }
+
+        function toggleReplyBox(commentId) {
+            const box = document.getElementById(`reply-box-${commentId}`);
+            box.style.display = box.style.display === 'none' ? 'block' : 'none';
+        }
+
+        let currentCommentListener = null; 
+
+        function generateCommentHTML(doc, localCommentStars, isReply = false) {
+            const data = doc.data();
+            const time = data.timestamp ? data.timestamp.toDate() : new Date();
+            const dateStr = time.toLocaleDateString();
+            
+            const isStarred = localCommentStars[doc.id];
+            const starIcon = isStarred ? '★' : '☆';
+            const starClass = isStarred ? 'star-active' : '';
+            const stars = data.stars || 0;
+
+            const adminDeleteBtn = isAdmin() ? `<button class="action-link delete-btn" onclick="deleteComment('${doc.id}')">Delete</button>` : '';
+            const isPoemLocked = poemDatabase.find(p => p.slug === data.poemSlug)?.isLocked;
+            const replyDisplay = isPoemLocked ? 'none' : 'inline-block';
+            const replyBtn = !isReply ? `<button class="action-link reply-action-btn-${data.poemSlug}" style="display:${replyDisplay}" onclick="toggleReplyBox('${doc.id}')">Reply</button>` : '';
+
+            return `
+                <div class="comment-item">
+                    <div class="comment-author">${data.name} <span class="comment-date">${dateStr}</span></div>
+                    <div class="comment-text">${data.text}</div>
+                    
+                    <div class="comment-actions">
+                        <button class="action-link ${starClass}" onclick="toggleCommentStar('${doc.id}')">${starIcon} ${stars > 0 ? stars : ''}</button>
+                        ${replyBtn}
+                        ${adminDeleteBtn}
+                    </div>
+
+                    <div id="reply-box-${doc.id}" style="display:none; margin-top: 15px;">
+                        <form class="comment-form" style="padding: 1rem; margin-bottom: 0;" onsubmit="submitComment(event, '${data.poemSlug}', '${doc.id}')">
+                            <input type="text" id="reply-${doc.id}-name-${doc.id}" placeholder="Your Name" required class="comment-input" style="font-size:0.9rem; padding:0.5rem;">
+                            <textarea id="reply-${doc.id}-text-${doc.id}" placeholder="Write a reply..." required class="comment-input" style="font-size:0.9rem; padding:0.5rem; min-height:60px;"></textarea>
+                            <button type="submit" class="comment-submit" style="font-size:0.9rem; padding:0.5rem 1rem;">Post Reply</button>
+                        </form>
+                    </div>
+                </div>
+            `;
+        }
+
+        function loadCommentsForPoem(slug) {
+            if (currentCommentListener) currentCommentListener(); 
+            
+            const listDiv = document.getElementById(`comment-list-${slug}`);
+            listDiv.innerHTML = '<p style="color:#888; font-style:italic;">Loading comments...</p>';
+
+            currentCommentListener = db.collection('comments')
+                .where('poemSlug', '==', slug)
+                .onSnapshot((snapshot) => {
+                    let localCommentStars = JSON.parse(localStorage.getItem('vonSimonCommentStars')) || {};
+                    listDiv.innerHTML = ''; 
+                    
+                    if (snapshot.empty) {
+                        listDiv.innerHTML = '<p style="color:#888; font-style:italic;">No comments yet. Be the first to share your thoughts!</p>';
+                        return;
+                    }
+
+                    const allDocs = snapshot.docs;
+                    const parents = allDocs.filter(doc => !doc.data().parentId).sort((a,b) => (b.data().timestamp?.toMillis() || 0) - (a.data().timestamp?.toMillis() || 0));
+                    const children = allDocs.filter(doc => doc.data().parentId).sort((a,b) => (a.data().timestamp?.toMillis() || 0) - (b.data().timestamp?.toMillis() || 0));
+
+                    parents.forEach(parentDoc => {
+                        listDiv.innerHTML += generateCommentHTML(parentDoc, localCommentStars, false);
+                        const replies = children.filter(childDoc => childDoc.data().parentId === parentDoc.id);
+                        if(replies.length > 0) {
+                            let repliesHTML = `<div class="nested-comments">`;
+                            replies.forEach(replyDoc => {
+                                repliesHTML += generateCommentHTML(replyDoc, localCommentStars, true);
+                            });
+                            repliesHTML += `</div>`;
+                            listDiv.innerHTML += repliesHTML;
+                        }
+                    });
+                });
+        }
+        
+        function handleRouting() {
+            const hash = window.location.hash.replace('#', '');
+            if (!hash) {
+                showHome();
+                return;
+            }
+            if (hash === 'about') {
+                showAbout();
+                return;
+            }
+            const poemIndex = poemDatabase.findIndex(p => p.slug === hash);
+            if (poemIndex !== -1) {
+                showPoem(`poem-${poemIndex}`, hash); 
+            } else {
+                showHome();
+            }
+        }
+
+        window.addEventListener('hashchange', handleRouting);
+
+        function showAbout() {
             document.getElementById('home-feed').style.display = 'none';
             let poems = document.querySelectorAll('.poem-detail');
             poems.forEach(p => p.style.display = 'none');
+            
+            const aboutPage = document.getElementById('about-author');
+            if(aboutPage) aboutPage.style.display = 'block';
+            window.scrollTo(0, 0);
+
+            if (currentCommentListener) {
+                currentCommentListener();
+                currentCommentListener = null;
+            }
+        }
+
+        function showPoem(poemId, slug) {
+            document.getElementById('home-feed').style.display = 'none';
+            let poems = document.querySelectorAll('.poem-detail');
+            poems.forEach(p => p.style.display = 'none');
+            
+            const aboutPage = document.getElementById('about-author');
+            if(aboutPage) aboutPage.style.display = 'none';
+
             document.getElementById(poemId).style.display = 'block';
             window.scrollTo(0, 0);
+
+            if (slug) loadCommentsForPoem(slug);
         }
 
         function showHome() {
             let poems = document.querySelectorAll('.poem-detail');
             poems.forEach(p => p.style.display = 'none');
+            
+            const aboutPage = document.getElementById('about-author');
+            if(aboutPage) aboutPage.style.display = 'none';
+
             document.getElementById('home-feed').style.display = 'block';
             window.scrollTo(0, 0);
+
+            if (currentCommentListener) {
+                currentCommentListener();
+                currentCommentListener = null;
+            }
         }
 
         function sortPoems() {
@@ -559,16 +1201,12 @@ Chanting
             const feedContainer = document.getElementById('home-feed');
             const listContainer = document.getElementById('sidebar-list');
             const cards = Array.from(feedContainer.querySelectorAll('.poem-card'));
-            const listItems = Array.from(listContainer.querySelectorAll('li'));
+            const listItems = Array.from(listContainer.querySelectorAll('#sidebar-list li'));
 
             const sorter = (a, b) => {
-                if (sortMethod === 'recent') {
-                    return b.dataset.added - a.dataset.added; 
-                } else if (sortMethod === 'oldest') {
-                    return a.dataset.added - b.dataset.added;
-                } else if (sortMethod === 'a-z') {
-                    return a.dataset.title.localeCompare(b.dataset.title);
-                }
+                if (sortMethod === 'recent') return b.dataset.added - a.dataset.added; 
+                if (sortMethod === 'oldest') return a.dataset.added - b.dataset.added;
+                if (sortMethod === 'a-z') return a.dataset.title.localeCompare(b.dataset.title);
             };
 
             cards.sort(sorter);
@@ -577,8 +1215,13 @@ Chanting
             listItems.forEach(item => listContainer.appendChild(item));
         }
 
-        // Run the builder when the page loads
-        window.onload = buildWebsite;
+        window.onload = () => {
+            buildWebsiteBase(); 
+            updateDynamicUI();  
+            sortPoems();        
+            handleRouting();    
+            startListeningToCloud(); 
+        };
     </script>
 
 </body>
